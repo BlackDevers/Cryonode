@@ -1,0 +1,39 @@
+{
+  "name": "cryonode",
+  "version": "1.0.0",
+  "description": "Контейнеризация Node.js приложений написанная на TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "create": "npx ts-node src/cli.ts create-container",
+    "start": "npx ts-node src/cli.ts start",
+    "active": "npx ts-node src/cli.ts active",
+    "stop": "npx ts-node src/cli.ts stop",
+    "remove": "npx ts-node src/cli.ts remove",
+    "dev": "npx ts-node src/cli.ts dev",
+    "export": "npx ts-node src/cli.ts export",
+    "import": "npx ts-node src/cli.ts import",
+    "compile": "npx ts-node src/cli.ts compile"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "esbuild": "^0.25.0",
+    "pidusage": "^4.0.0",
+    "progress": "^2.0.3",
+    "tar": "^7.4.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^22.13.8",
+    "@types/pidusage": "^2.0.5",
+    "@types/progress": "^2.0.7",
+    "@types/tar": "^6.1.13"
+  }
+}
