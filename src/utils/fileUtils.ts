@@ -1,9 +1,11 @@
 import { join } from 'path';
 import { mkdir, cp, rm, writeFile, readFile } from 'fs/promises';
-import {existsSync} from 'fs';
-import tar from 'tar';
-import { execSync, spawn } from 'child_process';
+import {existsSync} from 'fs'
+import * as tar from 'tar'; 
+import { execSync } from 'child_process';
 import ProgressBar from 'progress';
+import { spawn } from 'child_process';
+import os from 'os'
 
 export async function createContainer(name: string, source: string) {
   const containerPath = join(process.cwd(), name);
@@ -16,7 +18,7 @@ export async function createContainer(name: string, source: string) {
 export async function removeContainer(name: string) {
   const dir = join(process.cwd(), name);
   if (!existsSync(dir)) throw new Error(`Container ${name} not found`);
-  await rm(dir, { recursive: true, force: true });
+  //await rm(dir, { recursive: true, force: true });
 }
 
 export async function exportContainer(name: string) {
@@ -42,7 +44,14 @@ export async function exportContainer(name: string) {
     await rm(nodeModulesPath, { recursive: true, force: true });
   }
 
-  await tar.c({ gzip: true, file: outputFile }, [name]);
+  await tar.create(
+    {
+      gzip: true,
+      file: outputFile,
+      cwd: process.cwd(),
+    },
+    [name]
+  );
 }
 
 export async function importContainer(file: string) {
@@ -55,25 +64,19 @@ export async function importContainer(file: string) {
   const containerPath = join(process.cwd(), name);
   if (existsSync(containerPath)) throw new Error(`Container ${name} already exists`);
 
-  await tar.x({ file: filePath, cwd: process.cwd() });
+  await tar.extract({ file: filePath, cwd: process.cwd() });
 
   const packageJsonPath = join(containerPath, 'package.json');
   if (existsSync(packageJsonPath)) {
     console.log(`Installing dependencies for ${name}...`);
-    const bar = new ProgressBar('[:bar] :percent :etas', { total: 50, width: 20 });
-    const installProcess = spawn('npm', ['install'], { cwd: containerPath });
-    
-    installProcess.stdout?.on('data', () => bar.tick());
-    installProcess.stderr?.on('data', () => bar.tick());
-    installProcess.on('close', () => bar.total === bar.curr ? bar.tick(50 - bar.curr) : null);
-
-    await new Promise((resolve, reject) => {
-      installProcess.on('close', (code) => {
-        if (code === 0) resolve(null);
-        else reject(new Error(`npm install failed with code ${code}`));
-      });
-    });
-    console.log(`Dependencies installed for ${name}`);
+    try {
+      execSync('npm install', { cwd: containerPath, stdio: 'inherit' });
+      console.log(`Dependencies installed for ${name}`);
+    } catch (err) {
+      throw new Error(`Failed to install dependencies: ${err}`);
+    }
+  } else {
+    console.log(`No package.json found in ${name}, skipping dependency installation`);
   }
 }
 
